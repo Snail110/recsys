@@ -5,6 +5,8 @@ from collections import Counter
 
 """
 Data Process for FM, PNN, and DeepFM.
+[1] PaddlePaddle implementation of DeepFM for CTR prediction
+https://github.com/Snail110/Awesome-RecSystem-Models/blob/master/data/Criteo/forOtherModels/dataPreprocess_TensorFlow.py
 """
 def get_train_test_file(file_path, feat_dict_, split_ratio=0.9):
     #定义训练集与测试集
