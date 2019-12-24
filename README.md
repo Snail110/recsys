@@ -1,5 +1,28 @@
 # recsys
-推荐系统实战
+
+##1.Requirements
+
+TensorFlow2.0,Keras, Python3.6, NumPy, sk-learn, Pandas
+
+##2.Datasets
+2.1 Criteo
+This dataset Contains about 45 million records. There are 13 features taking integer values (mostly count features) and 26 categorical features.
+The dataset is available at http://labs.criteo.com/2014/02/download-kaggle-display-advertising-challenge-dataset/
+
+在这里我截取一部分数据进行模型训练 data =../data/Criteo/train.txt
+2.2 Seguro-safe-driver
+
+In the train and test data, features that belong to similar groupings are 
+tagged as such in the feature names (e.g., ind, reg, car, calc). In addition, 
+feature names include the postfix bin to indicate binary features and 
+cat to indicate categorical features. Features without these designations 
+are either continuous or ordinal. Values of -1 indicate that the feature was 
+missing from the observation. The target columns signifies whether or not a 
+claim was filed for that policy holder.
+
+The dataset is available at https://www.kaggle.com/c/porto-seguro-safe-driver-prediction
+
+##3.推荐系统实战
 
 第一章.协同过滤
 
