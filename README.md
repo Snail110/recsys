@@ -61,7 +61,7 @@ https://github.com/Snail110/tensorflow_practice/blob/master/recommendation/Basic
 https://www.jianshu.com/p/be784ab4abc2
 
 
-### 3.6 第五章 Wide-Deep
+### 3.6 第六章 Wide-Deep
 
 https://zhuanlan.zhihu.com/p/92279796
 
