@@ -1,6 +1,7 @@
 # recsys
 
-## 1.Requirements
+## 1.Requireme
+在这里强调下主要要是采用 Tensorflow2.0的api进行建立model
 
 TensorFlow2.0,Keras, Python3.6, NumPy, sk-learn, Pandas
 
@@ -58,3 +59,10 @@ https://github.com/JianzhouZhan/Awesome-RecSystem-Models
 https://github.com/Snail110/tensorflow_practice/blob/master/recommendation/Basic-PNN-Demo/PNN.py
 
 https://www.jianshu.com/p/be784ab4abc2
+
+
+### 3.6 第五章 Wide-Deep
+
+https://zhuanlan.zhihu.com/p/92279796
+
+https://github.com/busesese/Wide_Deep_Model
