@@ -14,32 +14,35 @@ class CrossLayer(tf.keras.layers.Layer):
         super(CrossLayer,self).__init__(**kwargs)
     
     def build(self,input_shape):
-        self.input_dim = input_shape[1]
+        self.input_dim = input_shape[2]
         # print(self.input_dim)
         self.W = []
         self.bias = []
         for i in range(self.num_layer):
-            self.W.append(self.add_weight(shape=[self.input_dim,1],initializer = 'glorot_uniform',name='w_{}'.format(i),trainable=True))
-            self.bias.append(self.add_weight(shape=[self.input_dim,1],initializer = 'zeros',name='b_{}'.format(i),trainable=True))
+            self.W.append(self.add_weight(shape=[1,self.input_dim],initializer = 'glorot_uniform',name='w_{}'.format(i),trainable=True))
+            self.bias.append(self.add_weight(shape=[1,self.input_dim],initializer = 'zeros',name='b_{}'.format(i),trainable=True))
         self.built = True
     def call(self,input):
 
         x0 = tf.einsum('bij->bji',input) # output[j][i] = m[i][j]
-        # print("x0_shape",x0.get_shape())
-        x1 = tf.einsum('bmn,bnk->bmk',input,x0)
-        cross = tf.einsum('bmn,nk->bmk',x1,self.W[0]) + self.bias[0] + input
-        
+        print("x0_shape",x0.get_shape())
+        x1 = tf.einsum('bmn,bkm->bnk', input, x0)
+        print("x1_shape", x1.get_shape())
+        print("self.W[0]_shape", self.W[0].get_shape())
+        cross = tf.einsum('bmn,kn->bkm',x1,self.W[0]) + self.bias[0] + input
+        print("cross0", cross.get_shape())
+
         for i in range(1,self.num_layer):
             x0 = tf.einsum('bij->bji',cross) # output[j][i] = m[i][j]
-            x1 = tf.einsum('bmn,bnk->bmk',input,x0)
-            cross = tf.einsum('bmn,nk->bmk',x1,self.W[i]) + self.bias[i] + cross
+            x1 = tf.einsum('bmn,bkm->bnk',input,x0)
+            cross = tf.einsum('bmn,kn->bkm',x1,self.W[i]) + self.bias[i] + cross
         return cross
         
 class Deep(tf.keras.layers.Layer):
     def __init__(self,dropout_deep,deep_layer_sizes):
         # input_dim = num_size + embed_size = input_size
         super(Deep, self).__init__()
-        self.dropout_deep  = dropout_deep
+        self.dropout_deep = dropout_deep
         # fc layer
         self.deep_layer_sizes = deep_layer_sizes
         # 神经网络方面的参数
