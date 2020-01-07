@@ -22,20 +22,29 @@ class CrossLayer(tf.keras.layers.Layer):
             self.W.append(self.add_weight(shape=[1,self.input_dim],initializer = 'glorot_uniform',name='w_{}'.format(i),trainable=True))
             self.bias.append(self.add_weight(shape=[1,self.input_dim],initializer = 'zeros',name='b_{}'.format(i),trainable=True))
         self.built = True
+
     def call(self,input):
+        # 按照论文的公式
+        # x0 = tf.einsum('bij->bji',input) # output[j][i] = m[i][j]
+        # print("x0_shape",x0.get_shape())# (9, 390, 1)
+        # x1 = tf.einsum('bmn,bkm->bnk', input, x0)
+        # print("x1_shape", x1.get_shape()) # (9, 390, 390)
+        # print("self.W[0]_shape", self.W[0].get_shape())
+        # cross = tf.einsum('bmn,kn->bkm',x1,self.W[0]) + self.bias[0] + input
+        # print("cross0", cross.get_shape())# (9, 1, 390)
+        # for i in range(1,self.num_layer):
+        #     x0 = tf.einsum('bij->bji',cross) # output[j][i] = m[i][j]
+        #     x1 = tf.einsum('bmn,bkm->bnk',input,x0)
+        #     cross = tf.einsum('bmn,kn->bkm',x1,self.W[i]) + self.bias[i] + cross
 
+        # 优化论文公式 改变结合律
         x0 = tf.einsum('bij->bji',input) # output[j][i] = m[i][j]
-        print("x0_shape",x0.get_shape())
-        x1 = tf.einsum('bmn,bkm->bnk', input, x0)
-        print("x1_shape", x1.get_shape())
-        print("self.W[0]_shape", self.W[0].get_shape())
-        cross = tf.einsum('bmn,kn->bkm',x1,self.W[0]) + self.bias[0] + input
-        print("cross0", cross.get_shape())
-
+        x1 = tf.einsum('bmn,km->bnk', x0, self.W[0])
+        cross = tf.einsum('bkm,bnk->bnm',input,x1) + self.bias[0] + input
         for i in range(1,self.num_layer):
             x0 = tf.einsum('bij->bji',cross) # output[j][i] = m[i][j]
-            x1 = tf.einsum('bmn,bkm->bnk',input,x0)
-            cross = tf.einsum('bmn,kn->bkm',x1,self.W[i]) + self.bias[i] + cross
+            x1 = tf.einsum('bmn,km->bnk', x0, self.W[i])
+            cross = tf.einsum('bkm,bnk->bnm', cross,x1) + self.bias[i] + cross
         return cross
         
 class Deep(tf.keras.layers.Layer):
