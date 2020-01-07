@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from collections import Counter
+import pickle
+from util.train_model import train_test_model_demo
+
 
 class CrossLayer(tf.keras.layers.Layer):
     def __init__(self,output_dim,num_layer,**kwargs):
@@ -96,144 +99,15 @@ class DCN(tf.keras.Model):
         output = self.fc(x3)
         return output
 
+if __name__ == '__main__':
+    AID_DATA_DIR = "../data/Criteo/"
+    feat_dict_ = pickle.load(open(AID_DATA_DIR + '/feat_dict_10.pkl2', 'rb'))
 
-train = pd.read_table('../data/Criteo/train.txt')
-train.columns=['label','I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'I9',
-       'I10', 'I11', 'I12', 'I13','C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7',
-       'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', 'C17',
-       'C18', 'C19', 'C20', 'C21', 'C22', 'C23', 'C24', 'C25', 'C26']
+    dcn = DCN(num_feat=len(feat_dict_) + 1, num_field=39, dropout_deep=[0.5, 0.5, 0.5],
+                    deep_layer_sizes=[400, 400])
 
-cont_features=['I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'I7', 'I8', 'I9',
-       'I10', 'I11', 'I12', 'I13']
-dist_features = ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7',
-       'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', 'C17',
-       'C18', 'C19', 'C20', 'C21', 'C22', 'C23', 'C24', 'C25', 'C26']
-freq_ = 10
-continuous_range_ = range(1, 14)
-categorical_range_ = range(14, 40)
+    train_label_path = AID_DATA_DIR + 'train_label'
+    train_idx_path = AID_DATA_DIR + 'train_idx'
+    train_value_path = AID_DATA_DIR + 'train_value'
 
-# 统计离散特征每个离散值出现的次数组成字典
-feat_cnt = Counter()
-with open('../data/Criteo/train.txt', 'r') as fin:
-    for line_idx, line in enumerate(fin):
-        features = line.rstrip('\n').split('\t')
-        for idx in categorical_range_:
-            if features[idx] == '': continue
-            feat_cnt.update([features[idx]])
-# Only retain discrete features with high frequency
-    fin.close()
-dis_feat_set = set() # 高频段的离散字符
-for feat, ot in feat_cnt.items():
-    if ot >= freq_:
-        dis_feat_set.add(feat)
-
-
-# Create a dictionary for continuous and discrete features
-feat_dict = {}
-tc = 1
-# Continuous features
-for idx in continuous_range_:
-    feat_dict[idx] = tc
-    tc += 1 # 代表占据一列
-
-# Discrete features
-cnt_feat_set = set()
-with open('../data/Criteo/train.txt', 'r') as fin:
-    for line_idx, line in enumerate(fin):
-        features = line.rstrip('\n').split('\t')
-        for idx in categorical_range_:
-            # 排除空字符和低频离散字符
-            if features[idx] == '' or features[idx] not in dis_feat_set:
-                continue
-            # 排除连续性数值
-            if features[idx] not in cnt_feat_set:
-                cnt_feat_set.add(features[idx])
-                # 获取种类数
-                feat_dict[features[idx]] = tc
-                tc += 1
-    fin.close()
-
-
-train_label = []
-train_value = []
-train_idx = []
-
-continuous_range_ = range(1, 14)
-categorical_range_ = range(14, 40)
-cont_max_=[]
-cont_min_=[]
-for cf in cont_features:
-    cont_max_.append(max(train[cf]))
-    cont_min_.append(min(train[cf]))
-cont_diff_ = [cont_max_[i] - cont_min_[i] for i in range(len(cont_min_))]
-
-def process_line_(line):
-    features = line.rstrip('\n').split('\t')
-    feat_idx, feat_value, label = [], [], []
-
-    # MinMax Normalization
-    for idx in continuous_range_:
-        if features[idx] == '':
-            feat_idx.append(0)
-            feat_value.append(0.0)
-        else:
-            feat_idx.append(feat_dict[idx])
-            # 归一化
-            feat_value.append(round((float(features[idx]) - cont_min_[idx - 1]) / cont_diff_[idx - 1], 6))
-
-    # 处理离散型数据
-    for idx in categorical_range_:
-        if features[idx] == '' or features[idx] not in feat_dict:
-            feat_idx.append(0)
-            feat_value.append(0.0)
-        else:
-            feat_idx.append(feat_dict[features[idx]])
-            feat_value.append(1.0)
-    return feat_idx, feat_value, [int(features[0])]
-
-with open('../data/Criteo/train.txt', 'r') as fin:
-    for line_idx, line in enumerate(fin):
-
-        feat_idx, feat_value, label = process_line_(line)
-        train_label.append(label)
-        train_idx.append(feat_idx)
-        train_value.append(feat_value)
-
-    fin.close()
-dcn= DCN(num_feat=len(feat_dict) + 1, num_field=39, dropout_deep=[0.5, 0.5, 0.5],
-                deep_layer_sizes=[400, 400])
-
-
-train_ds = tf.data.Dataset.from_tensor_slices(
-    (train_label,train_idx,train_value)).shuffle(10000).batch(32)
-
-
-@tf.function
-def train_one_step(model, optimizer, idx, value, label):
-    with tf.GradientTape() as tape:
-        output = model(idx,value)
-        loss = loss_object(y_true=label, y_pred=output)
-    grads = tape.gradient(loss, model.trainable_variables)
-    grads = [tf.clip_by_norm(g, 100) for g in grads]
-    optimizer.apply_gradients(grads_and_vars=zip(grads, model.trainable_variables))
-    
-    train_loss(loss)
-    train_accuracy(label,output)
-
-
-train_loss = tf.keras.metrics.Mean(name='train_loss')
-train_accuracy = tf.keras.metrics.BinaryAccuracy(name='train_acc')
-
-loss_object = tf.keras.losses.BinaryCrossentropy()
-
-optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4)
-
-
-EPOCHS = 50
-for epoch in range(EPOCHS):
-    for label, idx, value in train_ds:
-        train_one_step(dcn,optimizer,idx, value,label)
-    template = 'Epoch {}, Loss: {}, Accuracy: {}'
-    print (template.format(epoch+1,
-                             train_loss.result(),train_accuracy.result()))
-
+    train_test_model_demo(dcn,train_label_path, train_idx_path, train_value_path)
