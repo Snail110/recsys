@@ -2,10 +2,8 @@
 """
 TensorFlow 2.0 implementation of Product-based Neural Network[1]
 Reference:
-[1] Product-based Neural Networks for User ResponsePrediction,
-    Yanru Qu, Han Cai, Kan Ren, Weinan Zhang, Yong Yu, Ying Wen, Jun Wang
-[2] Tensorflow implementation of PNN
-    https://github.com/Snail110/Awesome-RecSystem-Models/blob/master/Model/PNN_TensorFlow.py
+https://zhuanlan.zhihu.com/p/37522285
+Neural Factorization Machines for Sparse Predictive Analytics
 """
 import tensorflow as tf
 
