@@ -28,6 +28,11 @@ The dataset is available at https://www.kaggle.com/c/porto-seguro-safe-driver-pr
 
 ## 3. 推荐系统实战
 
+![image](https://pic2.zhimg.com/80/v2-763b523bd17349cd6cfecae2765db3d5_hd.jpg)
+来自https://zhuanlan.zhihu.com/p/69050253
+
+![image](https://pic3.zhimg.com/v2-dd98a58d2676f20ded7d7b0c61e88fa2_r.jpg)
+来自https://zhuanlan.zhihu.com/p/53231955
 ### 3.1 第一章.协同过滤
 
 ### 3.2 第二章 GBDT+LR
@@ -66,3 +71,8 @@ https://www.jianshu.com/p/be784ab4abc2
 https://zhuanlan.zhihu.com/p/92279796
 
 https://github.com/busesese/Wide_Deep_Model
+
+### 3.6 第七章 NFM
+
+https://zhuanlan.zhihu.com/p/37522285
+Neural Factorization Machines for Sparse Predictive Analytics
